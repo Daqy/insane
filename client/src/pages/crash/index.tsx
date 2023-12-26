@@ -1,78 +1,147 @@
 import * as S from "./index.styles";
 import IconText from "../../components/iconText/iconText";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { toggle } from "../../store/chat";
+
+type Item = {
+  id: number;
+  name: string;
+  price: number;
+  condition: string;
+  imgSrc: string;
+};
+
+type Player = {
+  name: string;
+  price: number;
+};
 
 export default function Crash() {
-  const players = [
-    {
-      name: "Daqy",
-    },
-    { name: "jimmy" },
-    { name: "jimmy" },
-    { name: "jimmy" },
-    { name: "jimmy" },
-    { name: "jimmy" },
-    { name: "jimmy" },
-    { name: "jimmy" },
-  ];
+  const [multiplier, setMultiplier] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<string>("");
+  const [players, setPlayers] = useState<Player[]>([]);
 
-  const inventory = [
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-    { name: "usp-s" },
-  ];
+  const [inventory, setInventory] = useState<Item[]>([]);
+  const dispatch = useDispatch();
 
-  const selectedItems = [
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-    { price: "0.23" },
-  ];
+  const tempRandom = ["fn", "mw", "ft", "ww", "bs"];
+
+  useEffect(() => {
+    for (let i = 0; i < 21; i++) {
+      setInventory((inventory) => [
+        ...inventory,
+        {
+          id: i,
+          name: "usp-s",
+          price: getRandomInt(1000, 10000),
+          condition: tempRandom[getRandomInt(0, tempRandom.length - 1)],
+          imgSrc:
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_deagle_hy_ddpat_urb_light.png",
+        },
+      ]);
+    }
+  }, []);
+
+  useEffect(() => {
+    setPriceRange(
+      Math.ceil(
+        Math.max(...inventory.map((item) => item.price)) / 100
+      ).toString()
+    );
+  }, [inventory]);
+
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  const [selectedItems, setSelectedItems] = useState<Item[]>([]);
+  // const selectedItems: Item[] = [];
+
+  const onItemClick = (id: number) => {
+    const item = inventory.filter((item) => item.id === id)[0];
+    if (!isSelected(id)) {
+      setSelectedItems([...selectedItems, item]);
+    } else {
+      setSelectedItems([...selectedItems.filter((item) => item.id !== id)]);
+    }
+    // selectedItems.push(item);
+  };
+
+  const isSelected = (id: number) => {
+    return selectedItems.filter((item) => item.id === id).length > 0;
+  };
 
   const playersDom = useRef();
   const inventoryDom = useRef();
   const gameInventoryDom = useRef();
+
+  const multipliers = [
+    1.1, 2.14, 3.44, 10.23, 1.1, 1.1, 2.14, 3.44, 10.23, 1.1, 2.14, 3.44, 10.23,
+    1.1, 2.14, 3.44, 10.23,
+  ];
+
+  const joinGame = () => {
+    const player = {
+      name: "jimmy",
+      price: selectedItems.reduce((total, item) => total + item.price, 0),
+    };
+
+    setPlayers([...players, player]);
+    console.log("join");
+  };
+
+  const canvas = document.getElementsByClassName(
+    "myCanvas"
+  )[0] as HTMLCanvasElement;
+  // console.log(document.getElementsByClassName("myCanvas"));
+  const ctx = canvas?.getContext("2d");
+  if (ctx) {
+    const x1 = 50;
+    const y1 = 550;
+    const width = 5;
+    const cx1 = 50;
+    const cy1 = 550;
+    const cx2 = 850;
+    const cy2 = 550;
+    const x2 = 850;
+    const y2 = 400;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1 - width);
+    ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2 + width);
+    ctx.lineTo(x2, y2 + width * 2);
+    ctx.bezierCurveTo(cx2, cy2 + width, cx1, cy1 + width, x1, y1);
+    ctx.lineTo(x1, y1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // ctx.beginPath();
+    // ctx.moveTo(50, 550);
+    // ctx.bezierCurveTo(50, 550, 850, 550, 850, 50);
+    // ctx.stroke();
+    // width="900" height="600"
+  }
 
   return (
     <S.container>
       <S.inventory>
         <S.inventoryHeader>
           <p>
-            Total: <span style={{ color: "white" }}>$1928</span>
+            Total:{" "}
+            <span style={{ color: "white" }}>
+              ${inventory.reduce((total, item) => total + item.price, 0) / 100}
+            </span>
           </p>
           <p>
-            Selected: <span style={{ color: "white" }}>$12.45</span>
+            Selected:{" "}
+            <span style={{ color: "white" }}>
+              $
+              {selectedItems.reduce((total, item) => total + item.price, 0) /
+                100}
+            </span>
           </p>
           <p>
             <input type="checkbox" />
@@ -81,29 +150,52 @@ export default function Crash() {
         </S.inventoryHeader>
         <S.itemContainer>
           <S.inventorySlider>
+            <S.inventorySliderCurrent>
+              <span className="sliderLeft">Up to:</span>{" "}
+              <span>${priceRange}</span>
+            </S.inventorySliderCurrent>
             $0
-            <input type="range" />
-            $845
+            <input
+              type="range"
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              max={Math.ceil(
+                Math.max(...inventory.map((item) => item.price)) / 100
+              )}
+            />
+            ${Math.ceil(Math.max(...inventory.map((item) => item.price)) / 100)}
           </S.inventorySlider>
           <S.items ref={inventoryDom}>
             {inventory.map((item, index) => {
-              return (
-                <S.item key={index}>
-                  <S.itemHeader>
-                    <span>ww</span>
-                  </S.itemHeader>
-                  <S.itemImage>
-                    <img
-                      src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_deagle_hy_ddpat_urb_light.png"
-                      alt=""
-                    />
-                  </S.itemImage>
-                  <S.itemInfo>
-                    <h3>{item.name}</h3>
-                    <p>$45.33</p>
-                  </S.itemInfo>
-                </S.item>
-              );
+              if (parseInt(priceRange) > item.price / 100) {
+                return (
+                  <S.item
+                    key={index}
+                    onClick={() => onItemClick(item.id)}
+                    selected={isSelected(item.id)}
+                    theme={{ selected: item.condition }}
+                  >
+                    {isSelected(item.id) ? (
+                      <S.itemBackground theme={{ selected: item.condition }} />
+                    ) : (
+                      ""
+                    )}
+                    <S.itemHeader
+                      selected={isSelected(item.id)}
+                      theme={{ selected: item.condition }}
+                    >
+                      <span>{item.condition}</span>
+                    </S.itemHeader>
+                    <S.itemImage>
+                      <img src={item.imgSrc} alt={item.name} />
+                    </S.itemImage>
+                    <S.itemInfo>
+                      <h3>{item.name}</h3>
+                      <p>${(item.price / 100).toFixed(2)}</p>
+                    </S.itemInfo>
+                  </S.item>
+                );
+              }
             })}
           </S.items>
         </S.itemContainer>
@@ -126,27 +218,46 @@ export default function Crash() {
             <p>how to play</p>
             <p>hotkeys</p>
           </div>
-          <button>open</button>
+          <button onClick={() => dispatch(toggle())}>open</button>
         </S.gameHeader>
+        <S.gameCanvas>
+          <canvas width="900" height="600" className="myCanvas"></canvas>
+        </S.gameCanvas>
+        <S.gameMultipliers>
+          {multipliers.map((multiplier, index) => (
+            <S.gameMultiplier key={index}>{multiplier}</S.gameMultiplier>
+          ))}
+        </S.gameMultipliers>
       </S.gameContainer>
 
       <S.gameMenu>
         <S.gameMenuInput>
           <p>Auto cashout (multiplier)</p>
-          <input type="text" />
+          <input
+            type="text"
+            value={multiplier}
+            placeholder="10"
+            onChange={(e) => setMultiplier(e.target.value)}
+          />
+          <div className="buttons">
+            <button onClick={() => setMultiplier("1")}>x1</button>
+            <button onClick={() => setMultiplier("2")}>x2</button>
+            <button onClick={() => setMultiplier("10")}>x10</button>
+          </div>
         </S.gameMenuInput>
-        <S.gameButton>Join next game</S.gameButton>
+        <S.gameButton disabled={selectedItems.length === 0} onClick={joinGame}>
+          Join next game
+        </S.gameButton>
         <S.gameInventory ref={gameInventoryDom}>
           {selectedItems.map((item, index) => {
             return (
               <S.inventoryItems key={index}>
                 <S.inventoryItemImage>
-                  <img
-                    src="https://raw.githubusercontent.com/ByMykel/CSGO-API/efe25483a04a03414dea9c61d4b0e958a373cdfd/public/images/econ/default_generated/weapon_deagle_hy_ddpat_urb_light.png"
-                    alt=""
-                  />
+                  <img src={item.imgSrc} alt={item.name} />
                 </S.inventoryItemImage>
-                <S.invetoryItemPrice>${item.price}</S.invetoryItemPrice>
+                <S.invetoryItemPrice>
+                  ${(item.price / 100).toFixed(2)}
+                </S.invetoryItemPrice>
               </S.inventoryItems>
             );
           })}
@@ -172,14 +283,16 @@ export default function Crash() {
           <IconText>
             {{
               title: "users",
-              text: "12",
+              text: players.length.toString(),
               icon: <></>,
             }}
           </IconText>
           <IconText>
             {{
               title: "bank",
-              text: "$374",
+              text: `$${
+                players.reduce((total, player) => total + player.price, 0) / 100
+              }`,
               icon: <></>,
             }}
           </IconText>
@@ -203,7 +316,7 @@ export default function Crash() {
                     x
                   </S.playerMultiplier>
 
-                  <S.playerBet>$25</S.playerBet>
+                  <S.playerBet>${player.price / 100}</S.playerBet>
                 </S.playerMoneyInfo>
                 <div style={{ justifyContent: "end" }}>
                   <S.playerPotential>

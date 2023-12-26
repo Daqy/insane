@@ -1,5 +1,6 @@
-import styled from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import Container from "../../components/container/container";
+import { hexToRgb } from "../../services/converter";
 
 export const container = styled(Container)`
   background: var(--color-container-main-bg);
@@ -17,6 +18,7 @@ export const inventory = styled(Container)`
   flex-direction: column;
   gap: 1rem;
   height: 100%;
+  align-items: center;
 `;
 
 export const itemContainer = styled.div`
@@ -54,6 +56,32 @@ export const inventoryHeader = styled.div`
   }
 `;
 
+export const inventorySliderCurrent = styled.div`
+  display: flex;
+  align-items: center;
+  width: max-content;
+  margin-right: 2rem;
+  color: var(--color-text-main);
+
+  > span:not(.sliderLeft) {
+    color: white;
+  }
+
+  .sliderLeft {
+    width: max-content;
+    margin-right: 0.4rem;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: -1rem;
+    background: var(--color-highlight);
+    height: 1rem;
+    width: 1px;
+  }
+`;
+
 export const inventorySlider = styled(Container)`
   background: var(--color-container-tertiary-bg);
   color: white;
@@ -78,27 +106,67 @@ export const items = styled.div`
   flex-grow: 1;
   align-content: start;
   /* height: 100%; */
+
+  &:hover {
+    cursor: pointer;
+  }
 `;
+
+const loadSelected = keyframes`
+ 0% { opacity: 0; }
+ 100% { opacity: 1; }
+`;
+
+const selectedTheme = {
+  fn: "#cba53c",
+  mw: "#7b59b5",
+  ft: "#79ffd7",
+  ww: "#97ed4c",
+  bs: "#ffffff",
+};
 
 export const item = styled(Container)`
   flex-basis: calc(calc(100% - calc(0.4rem * 2)) / 3);
   padding: 0.5rem;
   background: var(--color-container-tertiary-bg);
+
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   height: fit-content;
+  color: ${(props) =>
+    props.selected ? selectedTheme[props.theme.selected] : ""};
 
   &::after {
     content: "";
     position: relative;
-    background: var(--color-highlight);
+    background: ${(props) =>
+      props.selected
+        ? selectedTheme[props.theme.selected]
+        : "var(--color-highlight)"};
     width: 25%;
     height: 3px;
     border-radius: 10px;
     align-self: center;
     margin-top: 1rem;
   }
+`;
+
+export const itemBackground = styled.div`
+  background: linear-gradient(
+    0deg,
+    rgba(${(props) => hexToRgb(selectedTheme[props.theme.selected])}, 0.4) 2%,
+    rgba(${(props) => hexToRgb(selectedTheme[props.theme.selected])}, 0.1) 100%
+  );
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  border-radius: 10px;
+  opacity: 0;
+  animation: ${loadSelected} 0.3s ease forwards;
+  /* transition: all 1s ease-in; */
 `;
 
 export const itemHeader = styled.div`
@@ -108,8 +176,20 @@ export const itemHeader = styled.div`
     font-size: 0.8rem;
     display: flex;
     width: fit-content;
+    text-transform: uppercase;
+    background: none;
     line-height: 0.8rem;
-    border: 2px solid var(--color-highlight);
+
+    /* font-weight: bold; */
+    color: ${(props) =>
+      props.selected ? "var(--color-container-tertiary-bg)" : ""};
+    background: ${(props) =>
+      props.selected ? selectedTheme[props.theme.selected] : ""};
+    border: 2px solid
+      ${(props) =>
+        props.selected
+          ? selectedTheme[props.theme.selected]
+          : "var(--color-highlight)"};
   }
 `;
 export const itemImage = styled.div`
@@ -136,7 +216,9 @@ export const itemInfo = styled.div`
 
 export const gameContainer = styled(Container)`
   grid-column: span 2;
-  /* background: red; */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
 export const gameHeader = styled.div`
@@ -149,6 +231,33 @@ export const gameHeader = styled.div`
     align-items: center;
     gap: 1rem;
   }
+`;
+
+export const gameCanvas = styled.div`
+  flex-grow: 1;
+
+  > canvas {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 10;
+  }
+`;
+
+export const gameMultipliers = styled.div`
+  width: 100%;
+  height: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  overflow: hidden;
+`;
+
+export const gameMultiplier = styled.p`
+  background: var(--color-container-secondary-bg);
+  border-radius: 5px;
+  padding: 0.2rem 0.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 export const gameHeading = styled.h1`
@@ -168,27 +277,69 @@ export const gameMenuInput = styled.div`
   gap: 0.5rem;
   font-size: 0.9rem;
 
+  &:after {
+    content: "x";
+    position: absolute;
+    font-size: 1.1rem;
+    left: 0.95rem;
+    bottom: 0.8rem;
+  }
+
   > input {
     color: white;
     background: var(--color-container-secondary-bg);
     border: 2px solid var(--color-highlight);
     font-size: 1.3rem;
     border-radius: 5px;
-    padding: 0.5rem;
+    padding: 0.7rem 10.3rem 0.7rem 1.5rem;
+
+    &::placeholder {
+      color: var(--color-highlight);
+    }
 
     &:focus {
       outline: none;
+    }
+  }
+  .buttons {
+    display: flex;
+    position: absolute;
+    bottom: 0.5rem;
+    gap: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .buttons > button {
+    font-size: 1rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    background: var(--color-container-tertiary-bg);
+    border: none;
+    color: var(--color-text-main);
+
+    &:hover {
+      cursor: pointer;
+      background: var(--color-container-tertiary-highlight-bg);
     }
   }
 `;
 
 export const gameButton = styled.button`
   background: var(--color-accent);
-  border: none;
+  border: 2px solid var(--color-accent);
   border-radius: 5px;
   color: white;
   font-size: 1rem;
   padding: 1rem;
+  transition: all 0.2s ease-in;
+
+  &:hover:not(:disabled) {
+    cursor: pointer;
+  }
+
+  &:disabled {
+    background: none;
+  }
 `;
 
 export const gameInventory = styled.div`
@@ -304,7 +455,7 @@ export const playerIcon = styled.div`
   > img {
     border-radius: 100px;
     overflow: hidden;
-    background: green;
+    background: black;
     height: 100%;
     aspect-ratio: 1/1;
   }
