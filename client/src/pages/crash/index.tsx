@@ -1,8 +1,9 @@
 import * as S from "./index.styles";
 import IconText from "../../components/iconText/iconText";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { toggle } from "../../store/chat";
+import { Graphics, Stage } from "@pixi/react";
 
 type Item = {
   id: number;
@@ -93,37 +94,40 @@ export default function Crash() {
     console.log("join");
   };
 
-  const canvas = document.getElementsByClassName(
-    "myCanvas"
-  )[0] as HTMLCanvasElement;
-  // console.log(document.getElementsByClassName("myCanvas"));
-  const ctx = canvas?.getContext("2d");
-  if (ctx) {
-    const x1 = 50;
-    const y1 = 550;
-    const width = 5;
-    const cx1 = 50;
-    const cy1 = 550;
-    const cx2 = 850;
-    const cy2 = 550;
-    const x2 = 850;
-    const y2 = 400;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1 - width);
-    ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2 + width);
-    ctx.lineTo(x2, y2 + width * 2);
-    ctx.bezierCurveTo(cx2, cy2 + width, cx1, cy1 + width, x1, y1);
-    ctx.lineTo(x1, y1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    // ctx.beginPath();
-    // ctx.moveTo(50, 550);
-    // ctx.bezierCurveTo(50, 550, 850, 550, 850, 50);
-    // ctx.stroke();
-    // width="900" height="600"
-  }
+  const stage = document.getElementsByClassName("stage")[0];
+  console.log(stage?.clientWidth);
+  const curve = useCallback(
+    (g) => {
+      g.clear();
+      g.lineStyle(5, 0xaa0000, 1);
+      // g.beginFill();
+      g.bezierCurveTo(
+        0,
+        0,
+        stage?.clientWidth - 200,
+        0,
+        stage?.clientWidth - 100,
+        -250
+      );
+      g.position.x = 50;
+      g.position.y = stage?.clientHeight - 50;
+      g.endFill();
+    },
+    [stage]
+  );
+
+  // const canvas = document.getElementsByClassName(
+  //   "myCanvas"
+  // )[0] as HTMLCanvasElement;
+  // // console.log(document.getElementsByClassName("myCanvas"));
+  // const ctx = canvas?.getContext("2d");
+  // if (ctx) {
+  // ctx.beginPath();
+  // ctx.moveTo(50, 550);
+  // ctx.bezierCurveTo(50, 550, 850, 550, 850, 50);
+  // ctx.stroke();
+  // width="900" height="600"
+  // }
 
   return (
     <S.container>
@@ -220,8 +224,15 @@ export default function Crash() {
           </div>
           <button onClick={() => dispatch(toggle())}>open</button>
         </S.gameHeader>
-        <S.gameCanvas>
-          <canvas width="900" height="600" className="myCanvas"></canvas>
+        <S.gameCanvas className="stage">
+          <Stage
+            width={stage?.clientWidth}
+            height={stage?.clientHeight}
+            options={{ backgroundAlpha: 0.2 }}
+          >
+            <Graphics draw={curve} />
+          </Stage>
+          {/* <canvas width="900" height="600" className="myCanvas"></canvas> */}
         </S.gameCanvas>
         <S.gameMultipliers>
           {multipliers.map((multiplier, index) => (

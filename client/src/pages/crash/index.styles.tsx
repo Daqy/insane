@@ -216,9 +216,12 @@ export const itemInfo = styled.div`
 
 export const gameContainer = styled(Container)`
   grid-column: span 2;
-  display: flex;
-  flex-direction: column;
+  /* display: flex; */
+  /* flex-direction: column; */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   gap: 0.5rem;
+  max-height: -webkit-fill-available;
 `;
 
 export const gameHeader = styled.div`
@@ -234,13 +237,14 @@ export const gameHeader = styled.div`
 `;
 
 export const gameCanvas = styled.div`
-  flex-grow: 1;
+  overflow: hidden;
+  /* flex-grow: 1; */
 
-  > canvas {
+  /* > canvas {
     width: 100%;
     height: 100%;
     aspect-ratio: 10;
-  }
+  } */
 `;
 
 export const gameMultipliers = styled.div`
