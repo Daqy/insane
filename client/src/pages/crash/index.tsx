@@ -1,9 +1,12 @@
 import * as S from "./index.styles";
 import IconText from "../../components/iconText/iconText";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { toggle } from "../../store/chat";
-import { Graphics, Stage } from "@pixi/react";
+import { Application, Sprite as Sprite2, Graphics, Texture } from "pixi.js";
+// import { Sprite, Graphics, Stage } from "@pixi/react";
+import rocketUrl from "../../assets/rocket.gif";
+import gradientUrl from "../../assets/gradient.png";
 
 type Item = {
   id: number;
@@ -94,40 +97,159 @@ export default function Crash() {
     console.log("join");
   };
 
-  const stage = document.getElementsByClassName("stage")[0];
-  console.log(stage?.clientWidth);
-  const curve = useCallback(
-    (g) => {
-      g.clear();
-      g.lineStyle(5, 0xaa0000, 1);
-      // g.beginFill();
-      g.bezierCurveTo(
-        0,
-        0,
-        stage?.clientWidth - 200,
-        0,
-        stage?.clientWidth - 100,
-        -250
-      );
-      g.position.x = 50;
-      g.position.y = stage?.clientHeight - 50;
-      g.endFill();
-    },
-    [stage]
-  );
+  // const rocket = Sprite.from("@/assets/rocket.gif");
 
-  // const canvas = document.getElementsByClassName(
-  //   "myCanvas"
-  // )[0] as HTMLCanvasElement;
-  // // console.log(document.getElementsByClassName("myCanvas"));
-  // const ctx = canvas?.getContext("2d");
-  // if (ctx) {
-  // ctx.beginPath();
-  // ctx.moveTo(50, 550);
-  // ctx.bezierCurveTo(50, 550, 850, 550, 850, 50);
-  // ctx.stroke();
-  // width="900" height="600"
-  // }
+  const [crash, setCrash] = useState(0.000000001);
+  const stage = useRef<HTMLElement>();
+
+  const getPositionFromCurve = (t, start, control, end) => {
+    return {
+      x: (1 - t) ** 2 * start.x + 2 * (1 - t) * t * control.x + t ** 2 * end.x,
+      y: (1 - t) ** 2 * start.y + 2 * (1 - t) * t * control.y + t ** 2 * end.y,
+    };
+  };
+
+  function createGradTexture() {
+    // adjust it if somehow you need better quality for very very big images
+    const quality = 1000;
+    const canvas = document.createElement("canvas");
+
+    canvas.width = quality;
+    canvas.height = 1;
+
+    const ctx = canvas.getContext("2d");
+
+    // use canvas2d API to create gradient
+    const grd = ctx.createLinearGradient(0, 0, quality, 0);
+
+    grd.addColorStop(0, "#a3ff4e");
+    grd.addColorStop(1, "#e92f2f");
+
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, quality, 1);
+
+    return Texture.from(canvas);
+  }
+
+  const gradTexture = createGradTexture();
+
+  const crashCurve = useRef(0);
+  crashCurve.current = crash;
+  useEffect(() => {
+    const app = new Application({
+      background: "#1b1e2b",
+      resizeTo: stage.current,
+      antialias: true,
+    });
+    const rocket = Sprite2.from(rocketUrl);
+    rocket.anchor.set(0.5, 0.02);
+    rocket.width = 140 * 0.68867;
+    rocket.height = 140;
+    rocket.rotation = 0; // Math.PI / 2;
+    rocket.x = app.screen.width - 100;
+    rocket.y = app.screen.height - 50;
+
+    const gradient = Sprite2.from(gradientUrl);
+    gradient.scale.x = 1000;
+    gradient.scale.y = 1000;
+    // gradient.width = 1000;
+
+    // const circle = new Graphics();
+    // const circle2 = new Graphics();
+
+    const crashLine = new Graphics();
+    crashLine.lineTextureStyle({ width: 5, texture: gradTexture });
+    // crashLine.lineStyle(5, 0xaa0000, 1);
+    crashLine.bezierCurveTo(
+      0,
+      0,
+      app.screen.width - 200,
+      0,
+      app.screen.width - 100,
+      0
+    );
+
+    crashLine.position.x = 50;
+    crashLine.position.y = app.screen.height - 50;
+
+    app.stage.addChild(crashLine);
+    app.stage.addChild(rocket);
+    // app.stage.addChild(circle);
+    // app.stage.addChild(circle2);
+
+    // let total = 0.000000001;
+    let count = 0;
+    let addToPoint2 = 0;
+    app.ticker.add((delta) => {
+      // rocket.position.y -= rocket.position.y > 50 ? delta : 0;
+      // total += total < app.screen.height - 100 ? delta * 0.5 : 0;
+      // console.log(total);
+      // console.log(delta);
+      if (crashCurve.current < 265) {
+        count++;
+      } else {
+        console.log(count);
+      }
+      const point1 = getPositionFromCurve(
+        1,
+        { x: 50, y: app.screen.height - 50 },
+        { x: app.screen.width - 200, y: app.screen.height - 50 },
+        {
+          x: app.screen.width - 50,
+          y: app.screen.height - 50 - crashCurve.current,
+        }
+      );
+
+      addToPoint2 +=
+        crashCurve.current < app.screen.height - 100 ? (0.1 * 1) / 265 : 0;
+      const point2 = getPositionFromCurve(
+        0.6999 + addToPoint2,
+        { x: 50, y: app.screen.height - 50 },
+        { x: app.screen.width - 200, y: app.screen.height - 50 },
+        {
+          x: app.screen.width - 50,
+          y: app.screen.height - 50 - crashCurve.current,
+        }
+      );
+
+      // circle.clear();
+      // circle.lineStyle(0);
+      // circle.beginFill(0x000000);
+      // circle.drawCircle(point1.x, point1.y, 5);
+      // circle.endFill();
+
+      // circle2.clear();
+      // circle2.lineStyle(0);
+      // circle2.beginFill(0x000000);
+      // circle2.drawCircle(point2.x, point2.y, 5);
+      // circle2.endFill();
+
+      const angle = Math.atan((point1.x - point2.x) / (point1.y - point2.y));
+      rocket.position = point1;
+      rocket.rotation = -angle;
+
+      crashLine.clear();
+
+      crashLine.lineTextureStyle({ width: 5, texture: gradTexture });
+      // crashLine.lineStyle(5, 0xaa0000, 1);
+      crashLine.bezierCurveTo(
+        0,
+        0,
+        app.screen.width - 200,
+        0,
+        app.screen.width - 100,
+        -crashCurve.current
+      );
+    });
+
+    stage.current.appendChild(app.view);
+  }, []);
+
+  useEffect(() => {
+    setInterval(() => {
+      setCrash((crash) => (crash < 265 ? (crash += 1) : crash));
+    }, 10);
+  }, []);
 
   return (
     <S.container>
@@ -224,16 +346,7 @@ export default function Crash() {
           </div>
           <button onClick={() => dispatch(toggle())}>open</button>
         </S.gameHeader>
-        <S.gameCanvas className="stage">
-          <Stage
-            width={stage?.clientWidth}
-            height={stage?.clientHeight}
-            options={{ backgroundAlpha: 0.2 }}
-          >
-            <Graphics draw={curve} />
-          </Stage>
-          {/* <canvas width="900" height="600" className="myCanvas"></canvas> */}
-        </S.gameCanvas>
+        <S.gameCanvas className="stage" ref={stage}></S.gameCanvas>
         <S.gameMultipliers>
           {multipliers.map((multiplier, index) => (
             <S.gameMultiplier key={index}>{multiplier}</S.gameMultiplier>
